@@ -124,14 +124,17 @@ module Mongo
         return response.first
       end
 
-      # Get information about the AWS encryption key and feed it to the the
+      # Get information about the Remote KMS encryption key and feed it to the the
       # KmsContext object
       #
       # @param [ Mongo::Crypt::KmsContext ] kms_context A KmsContext object
-      #   corresponding to one AWS KMS data key. Contains information about
+      #   corresponding to one Remote KMS data key. Contains information about
       #   the endpoint at which to establish a TLS connection and the message
       #   to send on that connection.
       def feed_kms(kms_context)
+        puts '*'*80
+        pp kms_context
+        puts '*'*80
         with_ssl_socket(kms_context.endpoint) do |ssl_socket|
 
           Timeout.timeout(SOCKET_TIMEOUT, Error::SocketTimeoutError,
