@@ -133,7 +133,7 @@ module Mongo
       #   to send on that connection.
       def feed_kms(kms_context)
         puts '*'*80
-        pp kms_context
+        pp kms_context.message
         puts '*'*80
         with_ssl_socket(kms_context.endpoint) do |ssl_socket|
 
