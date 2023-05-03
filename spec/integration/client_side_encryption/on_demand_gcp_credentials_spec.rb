@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# encoding: utf-8
+# rubocop:todo all
 
 require 'spec_helper'
 
@@ -36,11 +36,7 @@ describe 'On-demand GCP Credentials' do
 
   context 'when credentials are not available' do
     it 'raises an error' do
-      expect(
-        Mongo::Crypt::KMS::GCP::CredentialsRetriever
-      ).to receive(:get_access_token).with(no_args).once.and_raise(
-        Mongo::Crypt::KMS::CredentialsNotFound
-      )
+      skip 'This tests should NOT be run inside Google Cloud only' if ENV['TEST_FLE_GCP_AUTO']
 
       expect do
         client_encryption.create_data_key('gcp', data_key_options)

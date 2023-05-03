@@ -10,7 +10,7 @@ set_env_vars
 set_env_python
 set_env_ruby
 
-sudo apt-get -y install libyaml-dev
+sudo apt-get -y install libyaml-dev cmake
 
 bundle_install
 

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# encoding: utf-8
+# rubocop:todo all
 
 # Copyright (C) 2019-2020 MongoDB Inc.
 #
@@ -98,7 +98,7 @@ module Mongo
 
         Binding.setopt_kms_providers(self, @kms_providers.to_document)
 
-        if @kms_providers.aws&.empty? || @kms_providers.gcp&.empty?
+        if @kms_providers.aws&.empty? || @kms_providers.gcp&.empty? || @kms_providers.azure&.empty?
           Binding.setopt_use_need_kms_credentials_state(self)
         end
 
