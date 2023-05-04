@@ -1,0 +1,62 @@
+description: "retryable reads retry on different mongos"
+
+schemaVersion: "1.0"
+
+runOnRequirements:
+  - topologies: [ sharded ]
+    auth: false
+
+createEntities:
+  - client:
+      id: &client client
+      useMultipleMongoses: true
+      observeEvents:
+        - connectionCheckOutStartedEvent
+        - commandStartedEvent
+        - commandSucceededEvent
+        - commandFailedEvent
+  - session:
+      id: &session session
+      client: *client
+  - database:
+      id: &database database
+      client: *client
+      databaseName: &databaseName retryable-reads-different-mongos
+  - collection:
+      id: &collection collection
+      database: *database
+      collectionName: &collectionName coll
+
+initialData:
+  - collectionName: *collectionName
+    databaseName: *databaseName
+    documents:
+      - { _id: 1, x: 11 }
+      - { _id: 2, x: 22 }
+
+tests:
+  - description: "retries should target different mongos"
+    operations:
+      - name: startTransaction
+        object: *session
+      - name: insertOne
+        object: *collection
+        arguments:
+          session: *session
+          document: { _id: 3 }
+        expectResult: { $$unsetOrMatches: { insertedId: { $$unsetOrMatches: 3 } } }
+      - name: targetedFailPoint
+        object: testRunner
+        arguments:
+          session: *session
+          failPoint:
+            configureFailPoint: failCommand
+            mode: { times: 2 }
+            data:
+              failCommands: [find]
+              closeConnection: true
+      - name: runCommand
+        object: *database
+        arguments: { commandName: find, command: { find: *collectionName, filter: {} } }
+        expectError: { isError: false }
+
