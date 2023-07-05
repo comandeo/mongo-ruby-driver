@@ -1074,7 +1074,8 @@ module Mongo
           "from pool for #{@server.address}#{connection_global_id_msg} after #{wait_timeout} sec. " +
           "Connections in pool: #{@available_connections.length} available, " +
           "#{@checked_out_connections.length} checked out, " +
-          "#{@pending_connections.length + @connection_requests} pending " +
+          "#{@pending_connections.length} pending, " +
+          "#{@connection_requests} connections requests " +
           "(max size: #{max_size})"
         raise Error::ConnectionCheckOutTimeout.new(msg, address: @server.address)
       end
