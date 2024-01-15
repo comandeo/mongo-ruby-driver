@@ -18,7 +18,7 @@ RSpec.describe Mongo::Monitoring::OpenTelemetry::StatementBuilder do
 
       it 'returns the correct statement' do
         expected_filter = obfuscate ? { 'name' => '?' } : { 'name' => 'John' }
-        expected_statement = { 'find' => 'users', 'filter' => expected_filter }.to_json.freeze
+        expected_statement = { 'filter' => expected_filter }.to_json.freeze
         expect(statement_builder.build).to eq(expected_statement)
       end
     end
@@ -40,7 +40,7 @@ RSpec.describe Mongo::Monitoring::OpenTelemetry::StatementBuilder do
       end
 
       it 'returns the correct statement' do
-        expected_statement = { 'aggregate' => 'orders', 'pipeline' => expected_pipeline }.to_json.freeze
+        expected_statement = { 'pipeline' => expected_pipeline }.to_json.freeze
         expect(statement_builder.build).to eq(expected_statement)
       end
     end
@@ -54,7 +54,7 @@ RSpec.describe Mongo::Monitoring::OpenTelemetry::StatementBuilder do
       it 'returns the correct statement' do
         expected_query = obfuscate ? { 'name' => '?' } : { 'name' => 'John' }
         expected_update = obfuscate ? { '$set' => { 'age' => '?' } } : { '$set' => { 'age' => 30 } }
-        expected_statement = { 'findAndModify' => 'users', 'query' => expected_query,
+        expected_statement = { 'query' => expected_query,
                                'update' => expected_update }.to_json.freeze
         expect(statement_builder.build).to eq(expected_statement)
       end
@@ -74,7 +74,7 @@ RSpec.describe Mongo::Monitoring::OpenTelemetry::StatementBuilder do
                              [ { 'q' => { 'name' => 'John' },
                                  'u' => { '$set' => { 'age' => 30 } } } ]
                            end
-        expected_statement = { 'update' => 'users', 'updates' => expected_updates }.to_json.freeze
+        expected_statement = { 'updates' => expected_updates }.to_json.freeze
         expect(statement_builder.build).to eq(expected_statement)
       end
     end
@@ -94,7 +94,7 @@ RSpec.describe Mongo::Monitoring::OpenTelemetry::StatementBuilder do
       end
 
       it 'returns the correct statement' do
-        expected_statement = { 'delete' => 'users', 'deletes' => expected_deletes }.to_json.freeze
+        expected_statement = { 'deletes' => expected_deletes }.to_json.freeze
         expect(statement_builder.build).to eq(expected_statement)
       end
     end

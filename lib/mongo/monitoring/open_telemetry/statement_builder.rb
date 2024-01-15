@@ -43,7 +43,20 @@ module Mongo
         private
 
         def statement
-          mask(@command)
+          {}.tap do |statement|
+            statement['key'] = @command['key'] if @command.key?('key')
+            statement['query'] = mask(@command['query']) if @command.key?('query')
+            statement['filter'] = mask(@command['filter']) if @command.key?('filter')
+            statement['sort'] = @command['sort'] if @command.key?('sort')
+            statement['new'] = @command['new'] if @command.key?('new')
+            if @command.key?('update') && @command_name == 'findAndModify'
+              statement['update'] = mask(@command['update'])
+            end
+            statement['remove'] = @command['remove'] if @command.key?('remove')
+            statement['updates'] = mask_and_trim(@command['updates']) if @command.key?('updates')
+            statement['deletes'] = mask_and_trim(@command['deletes']) if @command.key?('deletes')
+            statement['pipeline'] = @command['pipeline'].map { |e| mask(e) } if @command.key?('pipeline')
+          end
         end
 
         def mask(hash)
@@ -56,6 +69,14 @@ module Mongo
                     else mask_value(k, v)
                     end
             h[k] = value
+          end
+        end
+
+        def mask_and_trim(array)
+          [
+            mask(array.first)
+          ].tap do |stmt|
+            stmt << '...' if array.size > 1
           end
         end
 
