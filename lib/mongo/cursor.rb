@@ -323,7 +323,7 @@ module Mongo
       end
 
       nil
-    rescue Error::OperationFailure::Family, Error::SocketError, Error::SocketTimeoutError, Error::ServerNotUsable
+    rescue Error::OperationFailure::Family, Error::SocketError, Error::SocketTimeoutError, Error::ServerNotUsable, Error::ConnectionPerished
       # Errors are swallowed since there is noting can be done by handling them.
     ensure
       end_session
