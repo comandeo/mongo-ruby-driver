@@ -349,7 +349,7 @@ module Mongo
           start_at_operation_time_supported = nil
 
           @cursor = read_with_retry_cursor(session, server_selector, self, context: context) do |server|
-            server.with_connection do |connection|
+            with_connection(server, context) do |connection|
               start_at_operation_time_supported = connection.description.server_version_gte?('4.0')
 
               result = send_initial_query(connection, context)
@@ -440,6 +440,15 @@ module Mongo
               connection,
               context: context,
             )
+        end
+
+        def with_connection(server, context, &block)
+          if server.load_balancer?
+            connection = server.pool.check_out(context: context)
+            block.call(connection)
+          else
+            server.with_connection(&block)
+          end
         end
 
         def time_to_bson_timestamp(time)
