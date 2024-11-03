@@ -305,9 +305,13 @@ module Mongo
     def close(opts = {})
       return if closed?
 
-      ctx = context ? context.refresh(timeout_ms: opts[:timeout_ms]) : fresh_context(opts)
-
       unregister
+
+      # We are in load balanced topology (@connection is not nil) and
+      # there was an error on the connection. In this case, we do not
+      # want to send a killCursors command to the server.
+      return if @connection && @connection.error?
+      ctx = context ? context.refresh(timeout_ms: opts[:timeout_ms]) : fresh_context(opts)
       read_with_one_retry do
         spec = {
           coll_name: collection_name,
