@@ -125,6 +125,7 @@ module Mongo
       #
       # @since 2.0.5
       def list_collections(options = {})
+        @batch_size = options[:batch_size]
         session = client.get_session(options)
         collections_info(session, ServerSelector.primary, options)
       end
