@@ -212,6 +212,9 @@ module Unified
       if interrupt_in_use_connections = spec.use('interruptInUseConnections')
         assert_matches(actual.options[:interrupt_in_use_connections], interrupt_in_use_connections, 'Command interrupt_in_use_connections does not match expectation')
       end
+      if reason = spec.use('reason')
+        assert_eq(actual.reason.to_s, reason, 'Event reason does not match expectation')
+      end
       unless spec.empty?
         raise NotImplementedError, "Unhandled keys: #{spec}"
       end
