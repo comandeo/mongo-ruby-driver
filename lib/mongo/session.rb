@@ -277,6 +277,8 @@ module Mongo
     # @api private
     attr_reader :pinned_server
 
+    attr_reader :pinned_connection
+
     # @return [ Integer | nil ] The connection global id that this session is pinned to,
     #   if any.
     #
@@ -389,6 +391,7 @@ module Mongo
     ensure
       @server_session = nil
       @ended = true
+      unpin
     end
 
     # Executes the provided block in a transaction, retrying as necessary.
@@ -839,27 +842,31 @@ module Mongo
 
     # Pins this session to the specified connection.
     #
-    # @param [ Integer ] connection_global_id The global id of connection to pin
+    # @param [ Mongo::Server::Connection ] connection The connection to pin
     # this session to.
     #
     # @api private
-    def pin_to_connection(connection_global_id)
-      if connection_global_id.nil?
+    def pin_to_connection(connection)
+      if connection&.global_id.nil?
         raise ArgumentError, 'Cannot pin to a nil connection id'
       end
-      @pinned_connection_global_id = connection_global_id
+      @pinned_connection_global_id = connection.global_id
+      @pinned_connection = connection
     end
 
     # Unpins this session from the pinned server or connection,
     # if the session was pinned.
     #
-    # @param [ Connection | nil ] connection Connection to unpin from.
     #
     # @api private
-    def unpin(connection = nil)
+    def unpin
       @pinned_server = nil
       @pinned_connection_global_id = nil
-      connection.unpin unless connection.nil?
+      if @pinned_connection
+        @pinned_connection.unpin
+        @pinned_connection.connection_pool.check_in(@pinned_connection)
+        @pinned_connection = nil
+      end
     end
 
     # Unpins this session from the pinned server or connection, if the session was pinned
@@ -870,20 +877,19 @@ module Mongo
     # (both client- and server-side generated ones).
     #
     # @param [ Error ] error The exception instance to process.
-    # @param [ Connection | nil ] connection Connection to unpin from.
     #
     # @api private
-    def unpin_maybe(error, connection = nil)
+    def unpin_maybe(error)
       if !within_states?(Session::NO_TRANSACTION_STATE) &&
         error.label?('TransientTransactionError')
       then
-        unpin(connection)
+        unpin
       end
 
       if committing_transaction? &&
         error.label?('UnknownTransactionCommitResult')
       then
-        unpin(connection)
+        unpin
       end
     end
 
@@ -1261,6 +1267,7 @@ module Mongo
     end
 
     def check_transactions_supported!
+      return
       raise Mongo::Error::TransactionsNotSupported, "standalone topology" if cluster.single?
 
       cluster.next_primary.with_connection do |conn|
