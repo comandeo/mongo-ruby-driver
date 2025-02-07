@@ -28,14 +28,10 @@ def standard_dependencies
     gem 'yajl-ruby', platforms: :mri, require: false
     gem 'celluloid', platforms: :mri, require: false
 
-    # for static analysis -- ignore ruby < 2.6 because of rubocop
-    # version incompatibilities
-    if RUBY_VERSION > '2.5.99'
-      gem 'rubocop', '~> 1.45.1'
-      gem 'rubocop-performance', '~> 1.16.0'
-      gem 'rubocop-rake', '~> 0.6.0'
-      gem 'rubocop-rspec', '~> 2.18.1'
-    end
+    gem 'rubocop', '~> 1.45.1'
+    gem 'rubocop-performance', '~> 1.16.0'
+    gem 'rubocop-rake', '~> 0.6.0'
+    gem 'rubocop-rspec', '~> 2.18.1'
 
     platform :mri do
       # Debugger for VSCode.
@@ -68,6 +64,6 @@ def standard_dependencies
     gem 'ruby-lsp', platforms: :mri
   end
 
-  gem 'libmongocrypt-helper', '~> 1.11.0' if ENV['FLE'] == 'helper'
+  gem 'libmongocrypt-helper', '~> 1.12.0' if ENV['FLE'] == 'helper'
 end
 # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength

@@ -22,6 +22,10 @@ else
   set -x
 fi
 
+if test -z "$PROJECT_DIRECTORY"; then
+  PROJECT_DIRECTORY=`realpath $(dirname $0)/..`
+fi
+
 MRSS_ROOT=`dirname "$0"`/../spec/shared
 
 . $MRSS_ROOT/shlib/distro.sh
@@ -41,7 +45,7 @@ set_env_vars
 set_env_python
 set_env_ruby
 
-prepare_server $arch
+prepare_server
 
 if test "$DOCKER_PRELOAD" != 1; then
   install_mlaunch_venv
@@ -118,7 +122,7 @@ elif test "$AUTH" = x509; then
 EOT
   `"
 
-  "$BINDIR"/mongo --tls \
+  "$BINDIR"/mongosh --tls \
     --tlsCAFile spec/support/certificates/ca.crt \
     --tlsCertificateKeyFile spec/support/certificates/client-x509.pem \
     -u bootstrap -p bootstrap \
@@ -215,6 +219,7 @@ if test -n "$FLE"; then
   python3 -u .evergreen/csfle/kms_http_server.py --ca_file .evergreen/x509gen/ca.pem --cert_file .evergreen/x509gen/server.pem --port 8002 --require_client_cert &
   python3 -u .evergreen/csfle/kms_kmip_server.py &
   python3 -u .evergreen/csfle/fake_azure.py &
+  python3 -u .evergreen/csfle/kms_failpoint_server.py --port 9003 &
 
   # Obtain temporary AWS credentials
   PYTHON=python3 . .evergreen/csfle/set-temp-creds.sh
@@ -286,7 +291,7 @@ fi
 export MONGODB_URI="mongodb://$hosts/?serverSelectionTimeoutMS=30000$uri_options"
 
 if echo "$AUTH" |grep -q ^aws-assume-role; then
-  $BINDIR/mongo "$MONGODB_URI" --eval 'db.runCommand({serverStatus: 1})' |wc
+  $BINDIR/mongosh "$MONGODB_URI" --eval 'db.runCommand({serverStatus: 1})' | wc
 fi
 
 set_fcv
