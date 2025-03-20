@@ -41,7 +41,7 @@ module Mongo
         @context = context
 
         session&.materialize_if_needed
-        unpin_maybe(session, connection) do
+        unpin_maybe(session) do
           add_error_labels(connection, context) do
             check_for_network_error do
               add_server_diagnostics(connection) do
@@ -58,7 +58,7 @@ module Mongo
                           )
                         end
                       else
-                        session.pin_to_connection(connection.global_id)
+                        session.pin_to_connection(connection)
                         connection.pin
                       end
                     end

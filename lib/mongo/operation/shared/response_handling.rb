@@ -30,7 +30,7 @@ module Mongo
       #   the operation is performed.
       # @param [ Mongo::Operation::Context ] context The operation context.
       def validate_result(result, connection, context)
-        unpin_maybe(context.session, connection) do
+        unpin_maybe(context.session) do
           add_error_labels(connection, context) do
             add_server_diagnostics(connection) do
               result.validate!
@@ -88,11 +88,11 @@ module Mongo
       #
       # @param [ Session | nil ] session Session to consider.
       # @param [ Connection | nil ] connection Connection to unpin.
-      def unpin_maybe(session, connection)
+      def unpin_maybe(session)
         yield
       rescue Mongo::Error => e
         if session
-          session.unpin_maybe(e, connection)
+          session.unpin_maybe(e)
         end
         raise
       end

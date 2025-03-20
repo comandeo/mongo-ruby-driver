@@ -492,11 +492,15 @@ module Mongo
     #
     # @since 2.3.0
     def with_connection(connection_global_id: nil, context: nil, &block)
-      pool.with_connection(
-        connection_global_id: connection_global_id,
-        context: context,
-        &block
-      )
+      if pinned_connection = context&.session&.pinned_connection
+        block.call(pinned_connection)
+      else
+        pool.with_connection(
+          connection_global_id: connection_global_id,
+          context: context,
+          &block
+        )
+      end
     end
 
     # Handle handshake failure.

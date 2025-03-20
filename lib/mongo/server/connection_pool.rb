@@ -722,7 +722,7 @@ module Mongo
       rescue Error::SocketError, Error::SocketTimeoutError, Error::ConnectionPerished => e
         maybe_raise_pool_cleared!(connection, e)
       ensure
-        if connection
+        if connection && !connection.pinned?
           check_in(connection)
         end
       end
